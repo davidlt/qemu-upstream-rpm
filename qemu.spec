@@ -126,13 +126,13 @@ Requires: %{name}-ui-sdl = %{epoch}:%{version}-%{release}
 
 Summary: QEMU is a FAST! processor emulator
 Name: qemu
-Version: 3.1.0
-Release: 4%{?rcrel}%{?dist}.1
+Version: @QEMU_VERSION@
+Release: 1%{?rcrel}%{?dist}
 Epoch: 2
 License: GPLv2 and BSD and MIT and CC-BY
 URL: http://www.qemu.org/
 
-Source0: http://wiki.qemu-project.org/download/%{name}-%{version}%{?rcstr}.tar.xz
+Source0: %{name}-%{version}%{?rcstr}.tar.xz
 
 # guest agent service
 Source10: qemu-guest-agent.service
@@ -279,6 +279,10 @@ BuildRequires: libpmem-devel
 %endif
 # qemu 3.1: Used for qemu-ga
 BuildRequires: libudev-devel
+# qemu 3.2: check, ./scripts/tap-driver.pl
+BuildRequires: perl-Test-Harness
+BuildRequires: bison
+BuildRequires: flex
 
 BuildRequires: glibc-static pcre-static glib2-static zlib-static
 
@@ -914,8 +918,7 @@ run_configure \
     --audio-drv-list=pa,sdl,alsa,oss \
     --tls-priority=@QEMU,SYSTEM \
     --enable-mpath \
-    %{spiceflag} \
-    --with-sdlabi="2.0" \
+    %{spiceflag}
 
 echo "config-host.mak contents:"
 echo "==="
@@ -1123,9 +1126,12 @@ done
 # RPM won't pick up their dependencies.
 chmod +x %{buildroot}%{_libdir}/qemu/*.so
 
+# We need to be explicit about Python version
+# We have BR on python3
+# 2to3 is fine on this script
+sed -i 's|#!/usr/bin/python|#!/usr/bin/python3|' %{buildroot}%{_bindir}/qemu-trace-stap{,-static}
 
 %check
-
 # Tests are hanging on s390 as of 2.3.0
 #   https://bugzilla.redhat.com/show_bug.cgi?id=1206057
 # Tests seem to be a recurring problem on s390, so I'd suggest just leaving
@@ -1203,8 +1209,17 @@ getent passwd qemu >/dev/null || \
 %doc %{qemudocdir}/qemu-qmp-ref.txt
 %doc %{qemudocdir}/README
 %dir %{_datadir}/%{name}/
-%{_datadir}/%{name}/qemu-icon.bmp
-%{_datadir}/%{name}/qemu_logo_no_text.svg
+%{_datadir}/icons/hicolor/32x32/apps/qemu.bmp
+%{_datadir}/icons/hicolor/scalable/apps/qemu.svg
+%{_datadir}/icons/hicolor/16x16/apps/qemu.png
+%{_datadir}/icons/hicolor/24x24/apps/qemu.png
+%{_datadir}/icons/hicolor/32x32/apps/qemu.png
+%{_datadir}/icons/hicolor/48x48/apps/qemu.png
+%{_datadir}/icons/hicolor/64x64/apps/qemu.png
+%{_datadir}/icons/hicolor/128x128/apps/qemu.png
+%{_datadir}/icons/hicolor/256x256/apps/qemu.png
+%{_datadir}/icons/hicolor/512x512/apps/qemu.png
+%{_datadir}/applications/qemu.desktop
 %{_datadir}/%{name}/keymaps/
 %{_datadir}/%{name}/trace-events-all
 %{_datadir}/%{name}/vgabios.bin
@@ -1231,6 +1246,7 @@ getent passwd qemu >/dev/null || \
 %{_datadir}/%{name}/efi-vmxnet3.rom
 %{_mandir}/man1/qemu.1*
 %{_mandir}/man1/virtfs-proxy-helper.1*
+%{_mandir}/man1/qemu-trace-stap.1*
 %{_mandir}/man7/qemu-block-drivers.7*
 %{_mandir}/man7/qemu-cpu-models.7*
 %{_mandir}/man7/qemu-ga-ref.7*
@@ -1352,6 +1368,7 @@ getent passwd qemu >/dev/null || \
 %{_bindir}/qemu-tilegx
 %{_bindir}/qemu-xtensa
 %{_bindir}/qemu-xtensaeb
+%{_bindir}/qemu-trace-stap
 
 %{_datadir}/systemtap/tapset/qemu-i386.stp
 %{_datadir}/systemtap/tapset/qemu-i386-simpletrace.stp
@@ -1423,6 +1440,42 @@ getent passwd qemu >/dev/null || \
 %{_datadir}/systemtap/tapset/qemu-xtensa-simpletrace.stp
 %{_datadir}/systemtap/tapset/qemu-xtensaeb.stp
 %{_datadir}/systemtap/tapset/qemu-xtensaeb-simpletrace.stp
+
+%{_datadir}/systemtap/tapset/qemu-aarch64-log.stp
+%{_datadir}/systemtap/tapset/qemu-aarch64_be-log.stp
+%{_datadir}/systemtap/tapset/qemu-alpha-log.stp
+%{_datadir}/systemtap/tapset/qemu-arm-log.stp
+%{_datadir}/systemtap/tapset/qemu-armeb-log.stp
+%{_datadir}/systemtap/tapset/qemu-cris-log.stp
+%{_datadir}/systemtap/tapset/qemu-hppa-log.stp
+%{_datadir}/systemtap/tapset/qemu-i386-log.stp
+%{_datadir}/systemtap/tapset/qemu-m68k-log.stp
+%{_datadir}/systemtap/tapset/qemu-microblaze-log.stp
+%{_datadir}/systemtap/tapset/qemu-microblazeel-log.stp
+%{_datadir}/systemtap/tapset/qemu-mips-log.stp
+%{_datadir}/systemtap/tapset/qemu-mips64-log.stp
+%{_datadir}/systemtap/tapset/qemu-mips64el-log.stp
+%{_datadir}/systemtap/tapset/qemu-mipsel-log.stp
+%{_datadir}/systemtap/tapset/qemu-mipsn32-log.stp
+%{_datadir}/systemtap/tapset/qemu-mipsn32el-log.stp
+%{_datadir}/systemtap/tapset/qemu-nios2-log.stp
+%{_datadir}/systemtap/tapset/qemu-or1k-log.stp
+%{_datadir}/systemtap/tapset/qemu-ppc-log.stp
+%{_datadir}/systemtap/tapset/qemu-ppc64-log.stp
+%{_datadir}/systemtap/tapset/qemu-ppc64abi32-log.stp
+%{_datadir}/systemtap/tapset/qemu-ppc64le-log.stp
+%{_datadir}/systemtap/tapset/qemu-riscv32-log.stp
+%{_datadir}/systemtap/tapset/qemu-riscv64-log.stp
+%{_datadir}/systemtap/tapset/qemu-s390x-log.stp
+%{_datadir}/systemtap/tapset/qemu-sh4-log.stp
+%{_datadir}/systemtap/tapset/qemu-sh4eb-log.stp
+%{_datadir}/systemtap/tapset/qemu-sparc-log.stp
+%{_datadir}/systemtap/tapset/qemu-sparc32plus-log.stp
+%{_datadir}/systemtap/tapset/qemu-sparc64-log.stp
+%{_datadir}/systemtap/tapset/qemu-tilegx-log.stp
+%{_datadir}/systemtap/tapset/qemu-x86_64-log.stp
+%{_datadir}/systemtap/tapset/qemu-xtensa-log.stp
+%{_datadir}/systemtap/tapset/qemu-xtensaeb-log.stp
 
 %files user-binfmt
 %{_exec_prefix}/lib/binfmt.d/qemu-*-dynamic.conf
@@ -1607,6 +1660,7 @@ getent passwd qemu >/dev/null || \
 %files system-x86-core
 %{_bindir}/qemu-system-i386
 %{_bindir}/qemu-system-x86_64
+%{_bindir}/elf2dmp
 %{_datadir}/systemtap/tapset/qemu-system-i386*.stp
 %{_datadir}/systemtap/tapset/qemu-system-x86_64*.stp
 %{_mandir}/man1/qemu-system-i386.1*
@@ -1618,6 +1672,7 @@ getent passwd qemu >/dev/null || \
 %{_datadir}/%{name}/linuxboot_dma.bin
 %{_datadir}/%{name}/multiboot.bin
 %{_datadir}/%{name}/kvmvapic.bin
+%{_datadir}/%{name}/pvh.bin
 %if 0%{?need_qemu_kvm}
 %{_bindir}/qemu-kvm
 %{_mandir}/man1/qemu-kvm.1*
