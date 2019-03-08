@@ -160,6 +160,8 @@ Patch0: 0001-Remove-problematic-evdev-86-key-from-en-us-keymap.patch
 BuildRequires: texinfo
 # For /usr/bin/pod2man
 BuildRequires: perl-podlators
+# For sphinx-build
+BuildRequires: python2-sphinx
 # For sanity test
 BuildRequires: qemu-sanity-check-nodeps
 BuildRequires: kernel
@@ -898,6 +900,7 @@ run_configure() {
         --disable-werror \
         --enable-kvm \
         --python=/usr/bin/python3 \
+        --enable-docs \
 %ifarch s390 %{mips64}
         --enable-tcg-interpreter \
 %endif
@@ -1197,6 +1200,7 @@ getent passwd qemu >/dev/null || \
 
 %files common -f %{name}.lang
 %dir %{qemudocdir}
+%doc %{qemudocdir}/interop
 %doc %{qemudocdir}/Changelog
 %doc %{qemudocdir}/COPYING
 %doc %{qemudocdir}/COPYING.LIB
