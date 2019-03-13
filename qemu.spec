@@ -153,6 +153,10 @@ Source21: 95-kvm-ppc64-memlock.conf
 
 # Good ol' keymap 86 still messin with us
 Patch0: 0001-Remove-problematic-evdev-86-key-from-en-us-keymap.patch
+# Temporary
+# See: https://patchwork.kernel.org/patch/10848715/
+# See: https://lists.gnu.org/archive/html/qemu-devel/2019-03/msg03697.html
+Patch1: ati-vga-fix-tracing.patch
 
 
 
